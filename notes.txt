@@ -1,0 +1,55 @@
+
+from chillie_util import check_if_verified
+from eth_account import Account
+import secrets
+
+priv = secrets.token_hex(32)
+private_key = "0x" + priv
+print("Private Key: ", private_key)
+acct = Account.from_key(private_key)
+print("Address: ", acct.address)
+
+
+
+def get_token_creator(hex):
+    token_address = web3.toChecksumAddress(hex)
+    current_block_number = web3.eth.block_number
+    tx_found = False
+
+    while current_block_number >= 0 and not tx_found:
+        block = web3.eth.get_block(current_block_number)
+        # wtf = web3.eth.get_transaction_by_block(block)
+        transactions = block.transactions
+
+        for t in transactions:
+            transaction = web3.toJSON(t).strip('"')
+            
+            receipt = web3.eth.get_transaction_receipt(transaction)
+            receipt_json_string = web3.toJSON(receipt)
+            receipt_json = json.loads(receipt_json_string)
+
+            # We know this is a Contract deployment
+            to_address = receipt_json['to']
+            from_address = receipt_json['from']
+
+            if to_address == token_address or from_address == token_address:
+                print(receipt_json_string)
+                print("To: " + to_address)
+                print("From: " + from_address)
+                print("Transaction: " + transaction)
+                
+            
+            
+
+
+            # if to_address == web3.toChecksumAddress('0x0'):
+            #     print("Woah..........")
+            #     receipt = web3.eth.get_transaction_receipt(t['hash'])
+            #     contract_address = receipt['contractAddress']
+            #     if contract_address.upper() == hex.upper():
+            #         return from_address
+                
+        current_block_number = current_block_number - 1
+        print("Going back to block " + str(current_block_number))
+        return -1
+    return -1
